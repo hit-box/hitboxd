@@ -1,2 +1,2 @@
 # hitboxd
-Hitbox daemon is a caching reverse proxy for HTTP
+Hitbox daemon is a caching reverse proxy for HTTP.
