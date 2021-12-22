@@ -64,8 +64,6 @@ impl From<Configuration<OverriddenCache>> for Configuration<Cache> {
 
 #[cfg(test)]
 mod test {
-    extern crate spectral;
-
     use std::env;
     use std::fs::File;
     use std::io::Read;

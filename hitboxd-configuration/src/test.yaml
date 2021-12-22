@@ -55,10 +55,8 @@ endpoints:
   - path: "/clusters/{cluster_id:i32}/comments/"
     request:
       query:
-        page:
-          type: String
+        page: all
         sort_by:
-          type: Enum
           variants:
             - date
             - clicks
@@ -66,16 +64,14 @@ endpoints:
         x-source:
           variants:
             - ios
-        x-source-2:
+        x-version:
           exclude:
-            - ios
-        x-source-3: All
+            - 1.15
     response:
       status_codes:
         - 200
       headers:
         content-type:
-          type: Enum
           variants:
             - application/json
       if: "cluster.items"
