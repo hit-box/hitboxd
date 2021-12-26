@@ -2,4 +2,5 @@
 
 members = [
     "hitboxd-configuration",
+    "hitboxd-router",
 ]
