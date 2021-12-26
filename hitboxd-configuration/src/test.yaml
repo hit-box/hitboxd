@@ -79,9 +79,7 @@ endpoints:
     ttl: 10min
   - path: "/cluster/{cluster_id:i32}/"
     group: api
-    backend:
-      - inmemory
-      - redis
+    backend: inmemory
   - path: "/sitemaps/"
     group: sitemaps
 ...
