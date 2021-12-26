@@ -71,7 +71,7 @@ mod tests {
     }
 
     #[test]
-    fn test_response_headers() {
+    fn test_response_headers_matched() {
         let response = Response::builder()
             .header("X-Foo-One", "Bar")
             .header("X-Foo-Two", "Bar")
@@ -84,5 +84,19 @@ mod tests {
             ]
         };
         assert!(headers.predicate(&response));
+    }
+    #[test]
+    fn test_response_headers_missed() {
+        let response = Response::builder()
+            .header("X-Foo-One", "Bar")
+            .body(())
+            .unwrap();
+        let headers = Headers {
+            inner: vec![
+                (String::from("X-Foo-One"), String::from("Bar")),
+                (String::from("X-Foo-Two"), String::from("Bar")),
+            ]
+        };
+        assert_eq!(headers.predicate(&response), false);
     }
 }
