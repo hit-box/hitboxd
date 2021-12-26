@@ -31,7 +31,7 @@ struct Wrapper<T>(pub T);
 impl Wrapper<&HashMap<String, OverriddenCache>> {
     fn merge(&self, cache: &Cache) -> HashMap<String, Cache> {
         self.0
-            .into_iter()
+            .iter()
             .map(|(key, overridden)| (key.clone(), overridden.merge(cache)))
             .collect()
     }
@@ -40,7 +40,7 @@ impl Wrapper<&HashMap<String, OverriddenCache>> {
 impl Wrapper<&Vec<Endpoint<OverriddenCache>>> {
     fn merge(&self, cache: &Cache) -> Vec<Endpoint<Cache>> {
         self.0
-            .into_iter()
+            .iter()
             .map(|endpoint| endpoint.merge(cache))
             .collect()
     }
@@ -69,8 +69,8 @@ mod test {
     use std::io::Read;
     use std::path::Path;
 
-    use crate::configuration::Configuration;
     use crate::cache::{Cache, OverriddenCache};
+    use crate::configuration::Configuration;
 
     fn read_test_yaml() -> Configuration<OverriddenCache> {
         let path = Path::new("src/test.yaml");

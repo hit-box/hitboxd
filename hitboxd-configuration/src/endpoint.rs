@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::cache::{OverriddenCache, Cache};
+use crate::cache::{Cache, OverriddenCache};
 use crate::request::Request;
 use crate::response::Response;
 

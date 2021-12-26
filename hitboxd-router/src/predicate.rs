@@ -25,20 +25,19 @@ impl<T> Predicate<Response<T>> for StatusCode {
 }
 
 struct Headers {
-    inner: Vec<(String, String)>
+    inner: Vec<(String, String)>,
 }
 
 impl<T> Predicate<Response<T>> for Headers {
     fn predicate(&self, source: &Response<T>) -> bool {
-        let matched_headers = self.inner
+        let matched_headers = self
+            .inner
             .iter()
-            .map(|(key, value)| source.headers()
-                .get(key)
-                .map(|found| found
-                    .to_str()
-                    .map(|v| v.cmp(value)) // log error `ToStrError`
+            .map(|(key, value)| {
+                source.headers().get(key).map(
+                    |found| found.to_str().map(|v| v.cmp(value)), // log error `ToStrError`
                 )
-            )
+            })
             .flatten()
             .flatten()
             .filter(|v| v.is_eq());
@@ -56,7 +55,9 @@ mod tests {
             .uri("https://example.com/path/to/resource/")
             .body(())
             .unwrap();
-        let path = Path { inner: String::from("/path/to/resource/") };
+        let path = Path {
+            inner: String::from("/path/to/resource/"),
+        };
         assert!(path.predicate(&request));
     }
 
@@ -81,7 +82,7 @@ mod tests {
             inner: vec![
                 (String::from("X-Foo-One"), String::from("Bar")),
                 (String::from("X-Foo-Two"), String::from("Bar")),
-            ]
+            ],
         };
         assert!(headers.predicate(&response));
     }
@@ -95,8 +96,8 @@ mod tests {
             inner: vec![
                 (String::from("X-Foo-One"), String::from("Bar")),
                 (String::from("X-Foo-Two"), String::from("Bar")),
-            ]
+            ],
         };
-        assert_eq!(headers.predicate(&response), false);
+        assert!(!headers.predicate(&response));
     }
 }

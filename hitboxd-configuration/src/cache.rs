@@ -35,11 +35,20 @@ pub(crate) struct OverriddenCache {
 impl OverriddenCache {
     pub(crate) fn merge(&self, cache: &Cache) -> Cache {
         Cache {
-            backend: self.backend.clone().unwrap_or(cache.backend.clone()),
-            policy: self.policy.clone().unwrap_or(cache.policy.clone()),
-            upstream: self.upstream.clone().unwrap_or(cache.upstream.clone()),
-            ttl: self.ttl.clone().unwrap_or(cache.ttl.clone()),
-            stale_ttl: self.stale_ttl.clone().unwrap_or(cache.stale_ttl.clone()),
+            backend: self
+                .backend
+                .clone()
+                .unwrap_or_else(|| cache.backend.clone()),
+            policy: self.policy.clone().unwrap_or_else(|| cache.policy.clone()),
+            upstream: self
+                .upstream
+                .clone()
+                .unwrap_or_else(|| cache.upstream.clone()),
+            ttl: self.ttl.clone().unwrap_or_else(|| cache.ttl.clone()),
+            stale_ttl: self
+                .stale_ttl
+                .clone()
+                .unwrap_or_else(|| cache.stale_ttl.clone()),
             prefix: self.backend.clone().or_else(|| cache.prefix.clone()),
             version: self.backend.clone().or_else(|| cache.version.clone()),
         }
