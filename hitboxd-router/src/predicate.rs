@@ -73,11 +73,15 @@ mod tests {
     #[test]
     fn test_response_headers() {
         let response = Response::builder()
-            .header("Foo", "Bar")
+            .header("X-Foo-One", "Bar")
+            .header("X-Foo-Two", "Bar")
             .body(())
             .unwrap();
         let headers = Headers {
-            inner: vec![(String::from("Foo"), String::from("Bar"))]
+            inner: vec![
+                (String::from("X-Foo-One"), String::from("Bar")),
+                (String::from("X-Foo-Two"), String::from("Bar")),
+            ]
         };
         assert!(headers.predicate(&response));
     }
