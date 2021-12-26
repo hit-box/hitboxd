@@ -1,8 +1,15 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+enum UseBackend {
+    Single(String),
+    Many(Vec<String>),
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct Cache {
-    backend: String,
+    backend: UseBackend,
     policy: String,
     upstream: String,
     #[serde(default = "ttl")]
@@ -27,7 +34,7 @@ pub(crate) struct OverriddenCache {
     stale_ttl: Option<String>,
     prefix: Option<String>,
     version: Option<String>,
-    backend: Option<String>,
+    backend: Option<UseBackend>,
     policy: Option<String>,
     upstream: Option<String>,
 }
@@ -40,8 +47,8 @@ impl OverriddenCache {
             upstream: self.upstream.clone().unwrap_or(cache.upstream.clone()),
             ttl: self.ttl.clone().unwrap_or(cache.ttl.clone()),
             stale_ttl: self.stale_ttl.clone().unwrap_or(cache.stale_ttl.clone()),
-            prefix: self.backend.clone().or_else(|| cache.prefix.clone()),
-            version: self.backend.clone().or_else(|| cache.version.clone()),
+            prefix: self.prefix.clone().or_else(|| cache.prefix.clone()),
+            version: self.version.clone().or_else(|| cache.version.clone()),
         }
     }
 }
