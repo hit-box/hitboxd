@@ -1,53 +1,15 @@
 use http::{Request, Response};
 
-trait Predicate<T> {
+pub(crate) trait Predicate<T> {
     fn predicate(&self, source: &T) -> bool;
-}
-
-struct Path {
-    inner: String,
-}
-
-impl<T> Predicate<Request<T>> for Path {
-    fn predicate(&self, source: &Request<T>) -> bool {
-        self.inner == source.uri().path()
-    }
-}
-
-struct StatusCode {
-    inner: u16,
-}
-
-impl<T> Predicate<Response<T>> for StatusCode {
-    fn predicate(&self, source: &Response<T>) -> bool {
-        self.inner == source.status().as_u16()
-    }
-}
-
-struct Headers {
-    inner: Vec<(String, String)>,
-}
-
-impl<T> Predicate<Response<T>> for Headers {
-    fn predicate(&self, source: &Response<T>) -> bool {
-        let matched_headers = self
-            .inner
-            .iter()
-            .map(|(key, value)| {
-                source.headers().get(key).map(
-                    |found| found.to_str().map(|v| v.cmp(value)), // log error `ToStrError`
-                )
-            })
-            .flatten()
-            .flatten()
-            .filter(|v| v.is_eq());
-        matched_headers.count() == self.inner.len()
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::path::Path;
+    use crate::status_code::StatusCode;
+    use crate::headers::Headers;
 
     #[test]
     fn test_request_path() {
@@ -55,9 +17,7 @@ mod tests {
             .uri("https://example.com/path/to/resource/")
             .body(())
             .unwrap();
-        let path = Path {
-            inner: String::from("/path/to/resource/"),
-        };
+        let path = Path::new(String::from("/path/to/resource/"));
         assert!(path.predicate(&request));
     }
 
@@ -67,37 +27,37 @@ mod tests {
             .status(http::StatusCode::OK)
             .body(())
             .unwrap();
-        let status = StatusCode { inner: 200 };
+        let status = StatusCode::new(200);
         assert!(status.predicate(&response));
     }
 
     #[test]
     fn test_response_headers_matched() {
-        let response = Response::builder()
+        let response = Request::builder()
             .header("X-Foo-One", "Bar")
             .header("X-Foo-Two", "Bar")
             .body(())
             .unwrap();
-        let headers = Headers {
-            inner: vec![
+        let headers = Headers::new(
+            vec![
                 (String::from("X-Foo-One"), String::from("Bar")),
                 (String::from("X-Foo-Two"), String::from("Bar")),
             ],
-        };
+        );
         assert!(headers.predicate(&response));
     }
     #[test]
     fn test_response_headers_missed() {
-        let response = Response::builder()
+        let request = Request::builder()
             .header("X-Foo-One", "Bar")
             .body(())
             .unwrap();
-        let headers = Headers {
-            inner: vec![
+        let headers = Headers::new(
+            vec![
                 (String::from("X-Foo-One"), String::from("Bar")),
                 (String::from("X-Foo-Two"), String::from("Bar")),
             ],
-        };
-        assert!(!headers.predicate(&response));
+        );
+        assert!(!headers.predicate(&request));
     }
 }
