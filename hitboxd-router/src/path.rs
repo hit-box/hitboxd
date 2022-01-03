@@ -1,5 +1,5 @@
-use http::Request;
 use crate::predicate::Predicate;
+use http::Request;
 
 pub(crate) struct Path {
     inner: String,
@@ -14,5 +14,23 @@ impl Path {
 impl<T> Predicate<Request<T>> for Path {
     fn predicate(&self, source: &Request<T>) -> bool {
         self.inner == source.uri().path()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::headers::Headers;
+    use crate::path::Path;
+    use crate::status_code::StatusCode;
+
+    #[test]
+    fn test_request_path() {
+        let request = Request::builder()
+            .uri("https://example.com/path/to/resource/")
+            .body(())
+            .unwrap();
+        let path = Path::new(String::from("/path/to/resource/"));
+        assert!(path.predicate(&request));
     }
 }
