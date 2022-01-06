@@ -20,8 +20,8 @@ impl<T> Predicate<Response<T>> for StatusCode {
 
 #[cfg(test)]
 mod tests {
-    use crate::headers::Headers;
-    use crate::path::Path;
+    
+    
     use crate::status_code::StatusCode;
 
     use super::*;

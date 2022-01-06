@@ -20,9 +20,9 @@ impl<T> Predicate<Request<T>> for Path {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::headers::Headers;
+    
     use crate::path::Path;
-    use crate::status_code::StatusCode;
+    
 
     #[test]
     fn test_request_path() {

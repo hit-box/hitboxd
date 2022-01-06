@@ -13,13 +13,13 @@ impl Headers {
 
 impl<T> Predicate<Request<T>> for Headers {
     fn predicate(&self, source: &Request<T>) -> bool {
-        has_headers(&self, source.headers())
+        has_headers(self, source.headers())
     }
 }
 
 impl<T> Predicate<Response<T>> for Headers {
     fn predicate(&self, source: &Response<T>) -> bool {
-        has_headers(&self, source.headers())
+        has_headers(self, source.headers())
     }
 }
 
@@ -42,8 +42,8 @@ fn has_headers(headers: &Headers, head: &HeaderMap<HeaderValue>) -> bool {
 mod tests {
     use super::*;
     use crate::headers::Headers;
-    use crate::path::Path;
-    use crate::status_code::StatusCode;
+    
+    
 
     #[test]
     fn test_response_headers_matched() {

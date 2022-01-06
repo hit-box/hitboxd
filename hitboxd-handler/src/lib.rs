@@ -1,6 +1,6 @@
+pub mod handler;
 mod headers;
 mod path;
-mod predicate;
+pub mod predicate;
 mod query;
-mod router;
 mod status_code;

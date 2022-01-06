@@ -1,12 +1,17 @@
+
+use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use futures_util::future;
 use hyper::service::Service;
 use hyper::{Body, Request, Response, Server};
 
+use hitboxd_router::handler::Handler;
+use hitboxd_router::predicate::Predicate;
+
 #[derive(Debug)]
 pub struct CacheService {
-    endpoints: &'static Vec<String>,
+    inner: Arc<Vec<Handler>>,
 }
 
 impl Service<Request<Body>> for CacheService {
@@ -22,12 +27,14 @@ impl Service<Request<Body>> for CacheService {
         let rsp = Response::builder();
         let body = Body::from(Vec::from(&b"heyo!"[..]));
         let rsp = rsp.status(200).body(body).unwrap();
+        let handler = self.inner.iter().find(|handler| handler.predicate(&req));
+        dbg!(&handler);
         future::ok(rsp)
     }
 }
 
 pub struct ServiceWrapper {
-    endpoints: Vec<String>,
+    inner: Arc<Vec<Handler>>,
 }
 
 impl<T> Service<T> for ServiceWrapper {
@@ -41,7 +48,7 @@ impl<T> Service<T> for ServiceWrapper {
 
     fn call(&mut self, _: T) -> Self::Future {
         future::ok(CacheService {
-            endpoints: &self.endpoints,
+            inner: self.inner.clone(),
         })
     }
 }
@@ -50,9 +57,11 @@ impl<T> Service<T> for ServiceWrapper {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
     let addr = "127.0.0.1:1337".parse().unwrap();
-    let server = Server::bind(&addr).serve(ServiceWrapper {
-        endpoints: vec![String::from("index")],
-    });
+    let handlers = Vec::new();
+    let service = ServiceWrapper {
+        inner: Arc::new(handlers),
+    };
+    let server = Server::bind(&addr).serve(service);
     println!("Listening on http://{}", addr);
     server.await?;
     Ok(())
