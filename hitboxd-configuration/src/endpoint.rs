@@ -7,10 +7,10 @@ use crate::response::Response;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Endpoint<CacheType> {
     #[serde(flatten)]
-    cache: CacheType,
-    path: String,
-    request: Option<Request>,
-    response: Option<Response>,
+    pub(crate) cache: CacheType,
+    pub(crate) path: String,
+    pub(crate) request: Option<Request>,
+    pub(crate) response: Option<Response>,
 }
 
 impl Endpoint<OverriddenCache> {

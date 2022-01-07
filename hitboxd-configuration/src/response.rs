@@ -5,8 +5,8 @@ use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub(crate) struct Response {
-    status_codes: Option<Vec<u16>>,
-    headers: Option<HashMap<String, Field>>,
+    pub(crate) status_codes: Option<Vec<u16>>,
+    pub(crate) headers: Option<HashMap<String, Field>>,
     #[serde(rename = "if")]
-    body: Option<String>,
+    pub(crate) body: Option<String>,
 }

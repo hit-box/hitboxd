@@ -2,19 +2,22 @@ use http::Response;
 
 use crate::predicate::Predicate;
 
+#[derive(Debug)]
 pub(crate) struct StatusCode {
-    inner: u16,
+    inner: Vec<u16>,
 }
 
 impl StatusCode {
-    pub(crate) fn new(inner: u16) -> Self {
+    pub(crate) fn new(inner: Vec<u16>) -> Self {
         Self { inner }
     }
 }
 
 impl<T> Predicate<Response<T>> for StatusCode {
     fn predicate(&self, source: &Response<T>) -> bool {
-        self.inner == source.status().as_u16()
+        self.inner
+            .iter()
+            .any(|status_code| status_code == &source.status().as_u16())
     }
 }
 

@@ -4,8 +4,9 @@ use hitboxd_handler::handler::Handler;
 use crate::endpoint::Endpoint;
 
 impl From<Endpoint<Cache>> for Handler {
-    fn from(_: Endpoint<Cache>) -> Self {
-        todo!()
+    fn from(source: Endpoint<Cache>) -> Self {
+        let status_codes = source.response.map(|v| v.status_codes).flatten();
+        Self::http(source.path, status_codes)
     }
 }
 

@@ -1,5 +1,7 @@
 use crate::predicate::Predicate;
 use http::{Request, Response};
+use crate::path::Path;
+use crate::status_code::StatusCode;
 
 #[derive(Debug)]
 pub struct HttpHandler {
@@ -8,29 +10,19 @@ pub struct HttpHandler {
     pub(crate) cache: i32,
 }
 
-impl HttpHandler {
-    pub fn new(path: String, status_code: u16) -> Self {
-        Self {
-            request: HandlerRequest { path },
-            response: HandlerResponse { status_code },
-            cache: 42,
-        }
-    }
-}
-
 #[derive(Debug)]
 pub(crate) struct HandlerRequest {
-    path: String,
+    pub(crate) path: Path,
 }
 
 #[derive(Debug)]
 pub(crate) struct HandlerResponse {
-    status_code: u16,
+    pub(crate) status_codes: Option<StatusCode>,
 }
 
 impl<T> Predicate<Request<T>> for HttpHandler {
     fn predicate(&self, source: &Request<T>) -> bool {
-        todo!()
+        self.request.path.predicate(source)
     }
 }
 

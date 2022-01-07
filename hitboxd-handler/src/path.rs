@@ -1,6 +1,7 @@
 use crate::predicate::Predicate;
 use http::Request;
 
+#[derive(Debug)]
 pub(crate) struct Path {
     inner: String,
 }
