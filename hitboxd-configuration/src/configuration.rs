@@ -23,7 +23,7 @@ pub struct Configuration<CacheType> {
     /// Predefined sets of backend, upstream & policy.
     groups: HashMap<String, CacheType>,
     /// All used endpoint.
-    endpoints: Vec<Endpoint<CacheType>>,
+    pub endpoints: Vec<Endpoint<CacheType>>,
 }
 
 struct Wrapper<T>(pub T);

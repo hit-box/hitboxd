@@ -5,7 +5,7 @@ use crate::request::Request;
 use crate::response::Response;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub(crate) struct Endpoint<CacheType> {
+pub struct Endpoint<CacheType> {
     #[serde(flatten)]
     cache: CacheType,
     path: String,
