@@ -1,7 +1,7 @@
-use crate::predicate::Predicate;
-use http::{Request, Response};
 use crate::path::Path;
+use crate::predicate::Predicate;
 use crate::status_code::StatusCode;
+use http::{Request, Response};
 
 #[derive(Debug)]
 pub struct HttpHandler {
@@ -31,4 +31,3 @@ impl<T> Predicate<Response<T>> for HttpHandler {
         todo!()
     }
 }
-

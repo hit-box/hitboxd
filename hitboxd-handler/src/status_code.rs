@@ -23,8 +23,7 @@ impl<T> Predicate<Response<T>> for StatusCode {
 
 #[cfg(test)]
 mod tests {
-    
-    
+
     use crate::status_code::StatusCode;
 
     use super::*;
@@ -35,7 +34,7 @@ mod tests {
             .status(http::StatusCode::OK)
             .body(())
             .unwrap();
-        let status = StatusCode::new(200);
+        let status = StatusCode::new(vec![200]);
         assert!(status.predicate(&response));
     }
 }

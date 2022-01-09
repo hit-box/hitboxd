@@ -1,5 +1,5 @@
 use crate::predicate::Predicate;
-use http::{Request};
+use http::Request;
 
 pub(crate) struct Query {
     inner: Vec<(String, String)>,
@@ -18,9 +18,4 @@ impl<T> Predicate<Request<T>> for Query {
 }
 
 #[cfg(test)]
-mod tests {
-    
-    
-    
-    
-}
+mod tests {}

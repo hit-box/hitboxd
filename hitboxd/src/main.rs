@@ -1,4 +1,3 @@
-
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
@@ -6,18 +5,18 @@ use futures_util::future;
 use hyper::service::Service;
 use hyper::{Body, Request, Response, Server};
 
+use hitboxd_configuration::cache::{Cache, OverriddenCache};
+use hitboxd_configuration::configuration::Configuration;
 use hitboxd_handler::handler::Handler;
 use hitboxd_handler::predicate::Predicate;
-use std::path::Path;
+use hitboxd_handler::Handleable;
 use std::env;
 use std::fs::File;
 use std::io::Read;
-use hitboxd_configuration::configuration::Configuration;
-use hitboxd_configuration::cache::{Cache, OverriddenCache};
+use std::path::Path;
 
-#[derive(Debug)]
 pub struct CacheService {
-    inner: Arc<Vec<Handler>>,
+    inner: Arc<Vec<Box<dyn Handleable<Body>>>>,
 }
 
 impl Service<Request<Body>> for CacheService {
@@ -33,14 +32,14 @@ impl Service<Request<Body>> for CacheService {
         let rsp = Response::builder();
         let body = Body::from(Vec::from(&b"heyo!"[..]));
         let rsp = rsp.status(200).body(body).unwrap();
-        let handler = self.inner.iter().find(|handler| handler.predicate(&req));
-        dbg!(&handler);
+        let endpoint = self.inner.iter().find(|endpoint| endpoint.predicate(&req));
+        let cache_key = endpoint.map(|endpoint| endpoint.cache_key());
         future::ok(rsp)
     }
 }
 
 pub struct ServiceWrapper {
-    inner: Arc<Vec<Handler>>,
+    inner: Arc<Vec<Box<dyn Handleable<Body>>>>,
 }
 
 impl<T> Service<T> for ServiceWrapper {
@@ -75,7 +74,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
     let addr = "127.0.0.1:1337".parse().unwrap();
     let config = read_config();
-    let handlers = config.into();
+    // let handlers = config.into();
+    let handlers = Vec::new();
     let service = ServiceWrapper {
         inner: Arc::new(handlers),
     };

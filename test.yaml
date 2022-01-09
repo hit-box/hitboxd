@@ -52,7 +52,7 @@ groups:
 
 # list of all endpoint
 endpoints:
-  - path: "/clusters/{cluster_id:i32}/comments/"
+  - path: "/clusters/comments/"
     request:
       query:
         page: all
@@ -67,6 +67,7 @@ endpoints:
         x-version:
           exclude:
             - 1.15
+    # проверить что по дефолту кешируем - статус ответа + какие хедеры (rfc) + content type?
     response:
       status_codes:
         - 200
@@ -75,6 +76,7 @@ endpoints:
           variants:
             - application/json
       if: "cluster.items"
+    # посмотреть в NGINX как строится ключ кеширования по дефолту (host + path + query)
     group: api
     ttl: 10min
   - path: "/cluster/{cluster_id:i32}/"

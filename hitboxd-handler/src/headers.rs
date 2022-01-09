@@ -42,8 +42,6 @@ fn has_headers(headers: &Headers, head: &HeaderMap<HeaderValue>) -> bool {
 mod tests {
     use super::*;
     use crate::headers::Headers;
-    
-    
 
     #[test]
     fn test_response_headers_matched() {

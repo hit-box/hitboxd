@@ -21,9 +21,8 @@ impl<T> Predicate<Request<T>> for Path {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     use crate::path::Path;
-    
 
     #[test]
     fn test_request_path() {
