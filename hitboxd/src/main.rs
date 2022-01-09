@@ -14,6 +14,7 @@ use hitboxd_configuration::configuration::Configuration;
 use hitboxd_endpoint::predicate::Predicate;
 use hitboxd_endpoint::Handleable;
 
+
 pub struct CacheService {
     endpoints: Arc<Vec<Box<dyn Handleable<Body>>>>,
 }
@@ -31,9 +32,24 @@ impl Service<Request<Body>> for CacheService {
         let rsp = Response::builder();
         let body = Body::from(Vec::from(&b"heyo!"[..]));
         let rsp = rsp.status(200).body(body).unwrap();
-        let endpoint = self.endpoints.iter().find(|endpoint| endpoint.predicate(&req));
-        let _cache_key = endpoint.map(|endpoint| endpoint.cache_key());
-        future::ok(rsp)
+        let found_endpoint = self
+            .endpoints
+            .iter()
+            .find(|endpoint| endpoint.predicate(&req));
+        match found_endpoint {
+            Some(endpoint) => {
+                let _cache_key = endpoint.cache_key();
+                future::ok(rsp)
+            }
+            None => {
+                // let client = Client::new();
+                // let uri = "http://httpbin.org/ip".parse().unwrap_or_default();
+                future::ok(rsp)
+                // async {
+                //     client.get(uri).await
+                // }
+            }
+        }
     }
 }
 
@@ -73,11 +89,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
     let addr = "127.0.0.1:1337".parse().unwrap();
     let config = read_config();
-    let endpoints: Vec<hitboxd_endpoint::Endpoint> = config.into();
+    let endpoints: Vec<hitboxd_endpoint::HttpEndpoint> = config.into();
     let mut handleable: Vec<Box<dyn Handleable<Body>>> = Vec::new();
     for endpoint in endpoints {
         handleable.push(Box::new(endpoint))
-    };
+    }
     let service = ServiceWrapper {
         endpoints: Arc::new(handleable),
     };
