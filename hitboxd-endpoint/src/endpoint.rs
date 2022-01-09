@@ -6,14 +6,14 @@ use crate::status_code::StatusCode;
 use http::{Request, Response};
 
 #[derive(Debug)]
-pub enum Handler {
-    HttpHandler(HttpHandler),
-    RpcHandler(RpcHandler),
+pub enum Endpoint {
+    Http(HttpHandler),
+    Rpc(RpcHandler),
 }
 
-impl Handler {
-    pub fn http(path: String, status_codes: Option<Vec<u16>>) -> Handler {
-        Handler::HttpHandler(HttpHandler {
+impl Endpoint {
+    pub fn http(path: String, status_codes: Option<Vec<u16>>) -> Endpoint {
+        Endpoint::Http(HttpHandler {
             request: HandlerRequest {
                 path: Path::new(path),
             },
@@ -25,20 +25,20 @@ impl Handler {
     }
 }
 
-impl<T> Predicate<Request<T>> for Handler {
+impl<T> Predicate<Request<T>> for Endpoint {
     fn predicate(&self, source: &Request<T>) -> bool {
         match self {
-            Handler::HttpHandler(http_handler) => http_handler.predicate(source),
-            Handler::RpcHandler(_) => unreachable!(),
+            Endpoint::Http(http_handler) => http_handler.predicate(source),
+            Endpoint::Rpc(_) => unreachable!(),
         }
     }
 }
 
-impl<T> Predicate<Response<T>> for Handler {
+impl<T> Predicate<Response<T>> for Endpoint {
     fn predicate(&self, source: &Response<T>) -> bool {
         match self {
-            Handler::HttpHandler(http_handler) => http_handler.predicate(source),
-            Handler::RpcHandler(_) => unreachable!(),
+            Endpoint::Http(http_handler) => http_handler.predicate(source),
+            Endpoint::Rpc(_) => unreachable!(),
         }
     }
 }
