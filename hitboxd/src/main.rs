@@ -15,7 +15,7 @@ use hitboxd_endpoint::predicate::Predicate;
 use hitboxd_endpoint::Handleable;
 
 pub struct CacheService {
-    inner: Arc<Vec<Box<dyn Handleable<Body>>>>,
+    endpoints: Arc<Vec<Box<dyn Handleable<Body>>>>,
 }
 
 impl Service<Request<Body>> for CacheService {
@@ -31,14 +31,14 @@ impl Service<Request<Body>> for CacheService {
         let rsp = Response::builder();
         let body = Body::from(Vec::from(&b"heyo!"[..]));
         let rsp = rsp.status(200).body(body).unwrap();
-        let endpoint = self.inner.iter().find(|endpoint| endpoint.predicate(&req));
+        let endpoint = self.endpoints.iter().find(|endpoint| endpoint.predicate(&req));
         let _cache_key = endpoint.map(|endpoint| endpoint.cache_key());
         future::ok(rsp)
     }
 }
 
 pub struct ServiceWrapper {
-    inner: Arc<Vec<Box<dyn Handleable<Body>>>>,
+    endpoints: Arc<Vec<Box<dyn Handleable<Body>>>>,
 }
 
 impl<T> Service<T> for ServiceWrapper {
@@ -52,7 +52,7 @@ impl<T> Service<T> for ServiceWrapper {
 
     fn call(&mut self, _: T) -> Self::Future {
         future::ok(CacheService {
-            inner: self.inner.clone(),
+            endpoints: self.endpoints.clone(),
         })
     }
 }
@@ -72,11 +72,14 @@ fn read_config() -> Configuration<Cache> {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
     let addr = "127.0.0.1:1337".parse().unwrap();
-    let _config = read_config();
-    // let handlers = config.into();
-    let handlers = Vec::new();
+    let config = read_config();
+    let endpoints: Vec<hitboxd_endpoint::Endpoint> = config.into();
+    let mut handleable: Vec<Box<dyn Handleable<Body>>> = Vec::new();
+    for endpoint in endpoints {
+        handleable.push(Box::new(endpoint))
+    };
     let service = ServiceWrapper {
-        inner: Arc::new(handlers),
+        endpoints: Arc::new(handleable),
     };
     let server = Server::bind(&addr).serve(service);
     println!("Listening on http://{}", addr);

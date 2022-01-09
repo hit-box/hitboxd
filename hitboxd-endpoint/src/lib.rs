@@ -10,3 +10,4 @@ mod rpc_handler;
 mod status_code;
 
 pub use handleable::Handleable;
+pub use endpoint::Endpoint;

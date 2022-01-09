@@ -4,6 +4,8 @@ use crate::predicate::Predicate;
 use crate::rpc_handler::RpcHandler;
 use crate::status_code::StatusCode;
 use http::{Request, Response};
+use crate::cacheable::{Cacheable, CacheError};
+use crate::Handleable;
 
 #[derive(Debug)]
 pub enum Endpoint {
@@ -42,3 +44,11 @@ impl<T> Predicate<Response<T>> for Endpoint {
         }
     }
 }
+
+impl Cacheable for Endpoint {
+    fn cache_key(&self) -> Result<Vec<u8>, CacheError> {
+        Ok(Vec::new())
+    }
+}
+
+impl<T> Handleable<T> for Endpoint {}
