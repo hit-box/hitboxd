@@ -5,13 +5,13 @@ use http::{Request, Response};
 pub struct RpcHandler;
 
 impl<T> Predicate<Request<T>> for RpcHandler {
-    fn predicate(&self, source: &Request<T>) -> bool {
+    fn predicate(&self, _source: &Request<T>) -> bool {
         todo!()
     }
 }
 
 impl<T> Predicate<Response<T>> for RpcHandler {
-    fn predicate(&self, source: &Response<T>) -> bool {
+    fn predicate(&self, _source: &Response<T>) -> bool {
         todo!()
     }
 }

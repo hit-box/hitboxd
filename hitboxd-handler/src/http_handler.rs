@@ -27,7 +27,7 @@ impl<T> Predicate<Request<T>> for HttpHandler {
 }
 
 impl<T> Predicate<Response<T>> for HttpHandler {
-    fn predicate(&self, source: &Response<T>) -> bool {
+    fn predicate(&self, _source: &Response<T>) -> bool {
         todo!()
     }
 }

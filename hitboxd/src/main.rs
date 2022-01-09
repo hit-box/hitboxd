@@ -7,7 +7,7 @@ use hyper::{Body, Request, Response, Server};
 
 use hitboxd_configuration::cache::{Cache, OverriddenCache};
 use hitboxd_configuration::configuration::Configuration;
-use hitboxd_handler::handler::Handler;
+
 use hitboxd_handler::predicate::Predicate;
 use hitboxd_handler::Handleable;
 use std::env;
@@ -33,7 +33,7 @@ impl Service<Request<Body>> for CacheService {
         let body = Body::from(Vec::from(&b"heyo!"[..]));
         let rsp = rsp.status(200).body(body).unwrap();
         let endpoint = self.inner.iter().find(|endpoint| endpoint.predicate(&req));
-        let cache_key = endpoint.map(|endpoint| endpoint.cache_key());
+        let _cache_key = endpoint.map(|endpoint| endpoint.cache_key());
         future::ok(rsp)
     }
 }
@@ -73,7 +73,7 @@ fn read_config() -> Configuration<Cache> {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
     let addr = "127.0.0.1:1337".parse().unwrap();
-    let config = read_config();
+    let _config = read_config();
     // let handlers = config.into();
     let handlers = Vec::new();
     let service = ServiceWrapper {
