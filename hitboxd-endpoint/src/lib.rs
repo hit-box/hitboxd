@@ -1,6 +1,6 @@
 pub mod cacheable;
-mod handleable;
 pub mod endpoint;
+mod handleable;
 mod headers;
 mod http_handler;
 mod path;

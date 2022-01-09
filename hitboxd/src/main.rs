@@ -1,3 +1,7 @@
+use std::env;
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
@@ -7,12 +11,7 @@ use hyper::{Body, Request, Response, Server};
 
 use hitboxd_configuration::cache::{Cache, OverriddenCache};
 use hitboxd_configuration::configuration::Configuration;
-
 use hitboxd_endpoint::predicate::Predicate;
-use std::env;
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
 use hitboxd_endpoint::Handleable;
 
 pub struct CacheService {
