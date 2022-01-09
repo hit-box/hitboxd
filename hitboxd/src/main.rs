@@ -5,9 +5,12 @@ use std::path::Path;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
+use std::future::Future;
+use std::pin::Pin;
+
 use futures_util::future;
 use hyper::service::Service;
-use hyper::{Body, Request, Response, Server};
+use hyper::{Body, Request, Response, Server, Client, Uri};
 
 use hitboxd_configuration::cache::{Cache, OverriddenCache};
 use hitboxd_configuration::configuration::Configuration;
@@ -22,33 +25,39 @@ pub struct CacheService {
 impl Service<Request<Body>> for CacheService {
     type Response = Response<Body>;
     type Error = hyper::Error;
-    type Future = future::Ready<Result<Self::Response, Self::Error>>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Ok(()).into()
     }
 
     fn call(&mut self, req: Request<Body>) -> Self::Future {
-        let rsp = Response::builder();
-        let body = Body::from(Vec::from(&b"heyo!"[..]));
-        let rsp = rsp.status(200).body(body).unwrap();
         let found_endpoint = self
             .endpoints
             .iter()
-            .find(|endpoint| endpoint.predicate(&req));
+            .find(|endpoint| endpoint.request(&req));
         match found_endpoint {
             Some(endpoint) => {
-                let _cache_key = endpoint.cache_key();
-                future::ok(rsp)
-            }
+                let host = endpoint.upstream();
+                Box::pin(async move {
+                    let client = Client::new();
+                    let scheme = req.uri().scheme_str().unwrap_or_else(|| "http");
+                    let path = req.uri().path();
+                    let uri = Uri::builder()
+                        .scheme(scheme)
+                        .authority(host)
+                        .path_and_query(path)
+                        .build()
+                        .unwrap();
+                    client.get(uri).await
+                })
+            },
             None => {
-                // let client = Client::new();
-                // let uri = "http://httpbin.org/ip".parse().unwrap_or_default();
-                future::ok(rsp)
-                // async {
-                //     client.get(uri).await
-                // }
-            }
+                Box::pin(async move {
+                    let client = Client::new();
+                    client.request(req).await
+                })
+            },
         }
     }
 }

@@ -36,22 +36,22 @@ impl HttpEndpoint {
     }
 }
 
-impl<T> Predicate<Request<T>> for HttpEndpoint {
-    fn predicate(&self, source: &Request<T>) -> bool {
-        self.request.path.predicate(source)
-    }
-}
-
-impl<T> Predicate<Response<T>> for HttpEndpoint {
-    fn predicate(&self, source: &Response<T>) -> bool {
-        self.response.status_codes.predicate(source)
-    }
-}
-
 impl Cacheable for HttpEndpoint {
     fn cache_key(&self) -> Result<Vec<u8>, CacheError> {
         Ok(Vec::new())
     }
 }
 
-impl<T> Handleable<T> for HttpEndpoint {}
+impl<T> Handleable<T> for HttpEndpoint {
+    fn request(&self, req: &Request<T>) -> bool {
+        true
+    }
+
+    fn response(&self, res: &Response<T>) -> bool {
+        true
+    }
+
+    fn upstream(&self) -> String {
+        String::from("news.rambler.ru")
+    }
+}
