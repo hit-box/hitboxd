@@ -12,5 +12,8 @@ Cargo.lock
 # JetBrains
 .idea
 
+# VSCode
+.vscode
+
 # MacOS
 .DS_Store
