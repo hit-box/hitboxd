@@ -1,39 +1,23 @@
 use crate::predicate::Predicate;
 use actix_router::ResourceDef;
 use http::Request;
-use regex::Regex;
-
-#[derive(Debug)]
-enum Pattern {
-    Regex(Regex),
-    Actix(ResourceDef),
-}
 
 #[derive(Debug)]
 pub(crate) struct Path {
-    pattern: Pattern,
+    pattern: ResourceDef,
 }
 
 impl Path {
     pub(crate) fn new(path: String) -> Self {
-        let pattern = if path.starts_with("^") {
-            Pattern::Regex(Regex::new(&path).unwrap())
-        } else {
-            Pattern::Actix(ResourceDef::new(path))
-        };
-
-        Self { pattern }
+        Self {
+            pattern: ResourceDef::new(path),
+        }
     }
 }
 
 impl<T> Predicate<Request<T>> for Path {
     fn predicate(&self, source: &Request<T>) -> bool {
-        let path = source.uri().path();
-
-        match &self.pattern {
-            Pattern::Regex(p) => p.is_match(path),
-            Pattern::Actix(p) => p.is_match(path),
-        }
+        self.pattern.is_match(source.uri().path())
     }
 }
 
@@ -53,17 +37,19 @@ mod tests {
             ("/res/42/res2/name", "/res/{arg1}/res2/{arg2}", true),
             ("/res/42/res/name", "/res/{arg1}/res2/{arg2}", false),
             ("/res/42/res2/name", "/res/{arg1}", false),
-            ("/res/42/res2/name", r"^/res/\d+/res\d/\w+?", true),
-            ("/res/42/res/name", r"^/res/\d+/res\d/\w+?", false),
+            ("/res/42/res2/name", r"/res/{arg1:\d+}", false),
+            ("/res/42", r"/res/{arg1:\d+}", true),
+            ("/res/42", r"/res/{arg1:\D+}", false),
+            ("/res/42/res2", r"/res/{arg1:\d+}", false),
+            ("/r/42/r2/name", r"/r/{arg1:\d+}/r2/{arg2:\D+}", true),
+            ("/r/name/r2/42", r"/r/{arg1:\d+}/r2/{arg2:\D+}", false),
         ];
 
         for (path, exp, result) in cases {
-            dbg!(path, exp, result);
-
             let request = Request::builder().uri(path).body(()).unwrap();
             let path = Path::new(exp.to_string());
 
-            assert!(path.predicate(&request) == result);
+            assert_eq!(result, path.predicate(&request));
         }
     }
 }

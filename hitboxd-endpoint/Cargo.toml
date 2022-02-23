@@ -7,5 +7,4 @@ edition = "2021"
 
 [dependencies]
 http = "0.2"
-regex = "1"
 actix-router = "0.5"
