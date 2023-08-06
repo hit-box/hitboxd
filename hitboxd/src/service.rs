@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::{fmt::Debug, marker::PhantomData, pin::Pin, sync::Arc};
 
+use actix_router::ResourceDef;
 use bytes::Bytes;
 use chrono::{Duration, Utc};
 use futures::{
@@ -61,15 +62,14 @@ where
     }
 }
 
-impl<S, B, ReqBody, ResBody> Service<Request<ReqBody>> for CacheService<S, B>
+impl<S, B, ResBody> Service<Request<Body>> for CacheService<S, B>
 where
-    S: Service<Request<ReqBody>, Response = Response<ResBody>> + Clone + Send + 'static,
+    S: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
     B: CacheBackend + Clone + Send + Sync + 'static,
     S::Future: Send,
 
     // debug bounds
-    ReqBody: Debug + HttpBody + Send + 'static,
-    Body: From<ReqBody>,
+    Body: From<Body>,
     ResBody: FromBytes + HttpBody + Send + 'static,
     ResBody::Error: Debug,
     ResBody::Data: Send,
@@ -78,9 +78,9 @@ where
     type Error = S::Error;
     type Future = CacheFuture<
         B,
-        CacheableHttpRequest<ReqBody>,
+        CacheableHttpRequest<Body>,
         CacheableHttpResponse<ResBody>,
-        Transformer<S, ReqBody>,
+        Transformer<S, Body>,
     >;
 
     fn poll_ready(
@@ -90,13 +90,18 @@ where
         self.upstream.poll_ready(cx)
     }
 
-    fn call(&mut self, req: Request<ReqBody>) -> Self::Future {
+    fn call(&mut self, req: Request<Body>) -> Self::Future {
+        let endpoint = self.config.endpoints.values().find(|endpoint| {
+            ResourceDef::new(endpoint.path.as_str()).is_match(req.uri().path())
+                && endpoint.methods.contains(req.method())
+        });
         let transformer = Transformer::new(self.upstream.clone());
         let backend = self.backends.get("InMemory").unwrap();
         CacheFuture::new(
             backend.clone(),
             CacheableHttpRequest::from_request(req),
             transformer,
+            // Arc::new(endpoint.unwrap().request_predicate.clone()),
             Arc::new(NeutralPredicate::new().query("cache".to_owned(), "true".to_owned())),
             Arc::new(NeutralResponsePredicate::new()),
         )
