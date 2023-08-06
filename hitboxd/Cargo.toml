@@ -6,10 +6,21 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+hitbox = { path = "../../hitbox/hitbox", features = ["metrics"] }
+hitbox-stretto = { path = "../../hitbox/hitbox-stretto" }
+hitbox-tower = { path = "../../hitbox/hitbox-tower" }
+hitbox-http = { path = "../../hitbox/hitbox-http", version = "0.1" }
+hitbox-redis = { path = "../../hitbox/hitbox-redis", version = "0.1" }
+hitbox-backend = { path = "../../hitbox/hitbox-backend", version = "0.1" }
 hyper = { version = "0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }
-pretty_env_logger = "0.4"
-futures-util = "0.3"
-serde_yaml = "0.8"
-hitboxd-endpoint = { path = "../hitboxd-endpoint" }
-hitboxd-configuration = { path = "../hitboxd-configuration" }
+tower = { version = "0.4", features = ["full"] }
+tower-http = { version = "0.4", features = ["full"] }
+tracing-subscriber = { version = "0.3" }
+tracing = { version = "0.1" }
+http = "0.2"
+serde = "1"
+futures = "0.3"
+pin-project = "1"
+chrono = "0.4"
+bytes = "1"

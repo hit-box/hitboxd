@@ -1,7 +1,5 @@
 [workspace]
 
 members = [
-    "hitboxd-configuration",
-    "hitboxd-endpoint",
     "hitboxd",
 ]
