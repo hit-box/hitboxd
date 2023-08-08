@@ -101,6 +101,7 @@ where
             })
             .unwrap();
         let request_predicate = Arc::clone(&endpoint.request_predicate);
+        let extractors = Arc::clone(&endpoint.extractors);
         let transformer = Transformer::new(self.upstream.clone());
         let backend = self.backends.get("InMemory").unwrap();
         CacheFuture::new(
@@ -110,6 +111,7 @@ where
             request_predicate,
             // Arc::new(NeutralPredicate::new().query("cache".to_owned(), "true".to_owned())),
             Arc::new(NeutralResponsePredicate::new()),
+            extractors,
         )
     }
 }

@@ -1,5 +1,7 @@
+use hitbox::cache::Extractor;
 use hitbox_backend::predicates::Predicate;
 use hitbox_http::{
+    extractors::{method::MethodExtractor, path::PathExtractor, NeutralExtractor},
     predicates::{header::HeaderPredicate, query::QueryPredicate, NeutralPredicate},
     CacheableHttpRequest,
 };
@@ -45,6 +47,8 @@ async fn main() {
             NeutralPredicate::new().query("cache".to_owned(), "true".to_owned()),
         )
             as Box<dyn Predicate<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
+        extractors: Arc::new(Box::new(NeutralExtractor::new().method().path("{path}*"))
+            as Box<dyn Extractor<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
     };
     let ip_endpoint = Endpoint {
         name: "ip".to_owned(),
@@ -56,6 +60,8 @@ async fn main() {
                 .header("x-cache".to_owned(), "enable".to_owned()),
         )
             as Box<dyn Predicate<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
+        extractors: Arc::new(Box::new(NeutralExtractor::new().method().path("{path}*"))
+            as Box<dyn Extractor<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
     };
     config.endpoints = HashMap::with_capacity(2);
     config.endpoints.insert("test".to_owned(), test_endpoint);

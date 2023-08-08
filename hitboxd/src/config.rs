@@ -2,15 +2,17 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::Arc;
 
+use hitbox::cache::Extractor;
 use hitbox_backend::predicates::Predicate;
 use hitbox_http::CacheableHttpRequest;
 use http::method::Method;
 use hyper::Body;
 
 pub type BoxPredicate = Box<dyn Predicate<Subject = CacheableHttpRequest<Body>> + Send + Sync>;
+pub type BoxExtractor = Box<dyn Extractor<Subject = CacheableHttpRequest<Body>> + Send + Sync>;
 
 pub struct Config {
-    pub endpoints: HashMap<String, Endpoint<BoxPredicate>>,
+    pub endpoints: HashMap<String, Endpoint<BoxPredicate, BoxExtractor>>,
 }
 
 impl Config {
@@ -22,9 +24,10 @@ impl Config {
 }
 
 #[derive(Debug)]
-pub struct Endpoint<P> {
+pub struct Endpoint<P, E> {
     pub name: String,
     pub path: String,
     pub methods: Vec<Method>,
     pub request_predicate: Arc<P>,
+    pub extractors: Arc<E>,
 }
