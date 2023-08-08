@@ -91,18 +91,24 @@ where
     }
 
     fn call(&mut self, req: Request<Body>) -> Self::Future {
-        let endpoint = self.config.endpoints.values().find(|endpoint| {
-            ResourceDef::new(endpoint.path.as_str()).is_match(req.uri().path())
-                && endpoint.methods.contains(req.method())
-        });
+        let endpoint = self
+            .config
+            .endpoints
+            .values()
+            .find(|endpoint| {
+                ResourceDef::new(endpoint.path.as_str()).is_match(req.uri().path())
+                    && endpoint.methods.contains(req.method())
+            })
+            .unwrap();
+        let request_predicate = Arc::clone(&endpoint.request_predicate);
         let transformer = Transformer::new(self.upstream.clone());
         let backend = self.backends.get("InMemory").unwrap();
         CacheFuture::new(
             backend.clone(),
             CacheableHttpRequest::from_request(req),
             transformer,
-            // Arc::new(endpoint.unwrap().request_predicate.clone()),
-            Arc::new(NeutralPredicate::new().query("cache".to_owned(), "true".to_owned())),
+            request_predicate,
+            // Arc::new(NeutralPredicate::new().query("cache".to_owned(), "true".to_owned())),
             Arc::new(NeutralResponsePredicate::new()),
         )
     }

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::sync::Arc;
 
 use hitbox_backend::predicates::Predicate;
 use hitbox_http::CacheableHttpRequest;
@@ -25,5 +26,5 @@ pub struct Endpoint<P> {
     pub name: String,
     pub path: String,
     pub methods: Vec<Method>,
-    pub request_predicate: P,
+    pub request_predicate: Arc<P>,
 }

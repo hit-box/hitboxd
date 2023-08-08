@@ -1,6 +1,6 @@
 use hitbox_backend::predicates::Predicate;
 use hitbox_http::{
-    predicates::{query::QueryPredicate, NeutralPredicate},
+    predicates::{header::HeaderPredicate, query::QueryPredicate, NeutralPredicate},
     CacheableHttpRequest,
 };
 use hitbox_redis::RedisBackend;
@@ -11,7 +11,7 @@ use hitboxd::{
 };
 use http::Method;
 use hyper::{Body, Server};
-use std::{collections::HashMap, net::SocketAddr};
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
 use hyper::http::{Request, Response};
 use tower::make::Shared;
@@ -41,13 +41,25 @@ async fn main() {
         name: "test".to_owned(),
         path: "/test/".to_owned(),
         methods: vec![Method::GET],
-        request_predicate: Box::new(
+        request_predicate: Arc::new(Box::new(
             NeutralPredicate::new().query("cache".to_owned(), "true".to_owned()),
         )
-            as Box<dyn Predicate<Subject = CacheableHttpRequest<Body>> + Send + Sync>,
+            as Box<dyn Predicate<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
+    };
+    let ip_endpoint = Endpoint {
+        name: "ip".to_owned(),
+        path: "/ip".to_owned(),
+        methods: vec![Method::GET],
+        request_predicate: Arc::new(Box::new(
+            NeutralPredicate::new()
+                .query("cache".to_owned(), "true".to_owned())
+                .header("x-cache".to_owned(), "enable".to_owned()),
+        )
+            as Box<dyn Predicate<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
     };
     config.endpoints = HashMap::with_capacity(2);
     config.endpoints.insert("test".to_owned(), test_endpoint);
+    config.endpoints.insert("ip".to_owned(), ip_endpoint);
 
     let backend = RedisBackend::builder().build().unwrap();
     // let inmemory = StrettoBackend::builder(10_000_000).finalize().unwrap();
