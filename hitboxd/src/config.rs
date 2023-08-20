@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::Arc;
 
-use hitbox::cache::Extractor;
-use hitbox_backend::predicates::Predicate;
+use hitbox::predicate::Predicate;
+use hitbox::Extractor;
 use hitbox_http::CacheableHttpRequest;
 use http::method::Method;
 use hyper::Body;

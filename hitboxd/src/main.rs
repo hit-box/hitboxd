@@ -1,8 +1,7 @@
-use hitbox::cache::Extractor;
-use hitbox_backend::predicates::Predicate;
+use hitbox::{predicate::Predicate, Extractor};
 use hitbox_http::{
     extractors::{method::MethodExtractor, path::PathExtractor, NeutralExtractor},
-    predicates::{header::HeaderPredicate, query::QueryPredicate, NeutralPredicate},
+    predicates::{header::HeaderPredicate, query::QueryPredicate, NeutralRequestPredicate},
     CacheableHttpRequest,
 };
 use hitbox_redis::RedisBackend;
@@ -44,7 +43,7 @@ async fn main() {
         path: "/test/".to_owned(),
         methods: vec![Method::GET],
         request_predicate: Arc::new(Box::new(
-            NeutralPredicate::new().query("cache".to_owned(), "true".to_owned()),
+            NeutralRequestPredicate::new().query("cache".to_owned(), "true".to_owned()),
         )
             as Box<dyn Predicate<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
         extractors: Arc::new(Box::new(NeutralExtractor::new().method().path("{path}*"))
@@ -55,7 +54,7 @@ async fn main() {
         path: "/ip".to_owned(),
         methods: vec![Method::GET],
         request_predicate: Arc::new(Box::new(
-            NeutralPredicate::new()
+            NeutralRequestPredicate::new()
                 .query("cache".to_owned(), "true".to_owned())
                 .header("x-cache".to_owned(), "enable".to_owned()),
         )

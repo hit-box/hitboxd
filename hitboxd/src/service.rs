@@ -1,32 +1,20 @@
 use std::collections::HashMap;
-use std::{fmt::Debug, marker::PhantomData, pin::Pin, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
 use actix_router::ResourceDef;
-use bytes::Bytes;
-use chrono::{Duration, Utc};
-use futures::{
-    future::{BoxFuture, Map},
-    Future, FutureExt,
-};
-use hitbox::{
-    backend::{BackendError, CacheBackend},
-    fsm::{CacheFuture, Transform},
-    Cacheable, CachedValue,
-};
-use hitbox_backend::CacheableResponse;
+use hitbox::policy::PolicyConfig;
+use hitbox::{backend::CacheBackend, fsm::CacheFuture};
 use hitbox_http::{
-    predicates::{query::QueryPredicate, NeutralPredicate, NeutralResponsePredicate},
-    CacheableHttpRequest, CacheableHttpResponse, FromBytes, SerializableHttpResponse,
+    predicates::{query::QueryPredicate, NeutralRequestPredicate, NeutralResponsePredicate},
+    CacheableHttpRequest, CacheableHttpResponse, FromBytes,
 };
 use http::{Request, Response};
 use hyper::body::{Body, HttpBody};
-use serde::{de::DeserializeOwned, Serialize};
 use tower::Service;
 
-use hitbox::fsm::CacheFuture3;
 use tracing::log::warn;
 
-use hitbox_tower::future::{Transformer, UpstreamFuture};
+use hitbox_tower::future::Transformer;
 
 pub struct CacheService<S, B> {
     upstream: S,
@@ -109,9 +97,10 @@ where
             CacheableHttpRequest::from_request(req),
             transformer,
             request_predicate,
-            // Arc::new(NeutralPredicate::new().query("cache".to_owned(), "true".to_owned())),
+            // Arc::new(NeutralRequestPredicate::new().query("cache".to_owned(), "true".to_owned())),
             Arc::new(NeutralResponsePredicate::new()),
             extractors,
+            Arc::new(PolicyConfig::default()),
         )
     }
 }
