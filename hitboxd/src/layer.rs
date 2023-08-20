@@ -1,8 +1,6 @@
 use std::collections::HashMap;
-use std::{marker::PhantomData, sync::Arc};
+use std::sync::Arc;
 
-use hitbox::backend::CacheBackend;
-use hitbox_redis::RedisBackend;
 use tower::Layer;
 
 use crate::CacheService;

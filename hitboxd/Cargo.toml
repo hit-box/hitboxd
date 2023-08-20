@@ -11,7 +11,6 @@ hitbox = { path = "../../hitbox/hitbox", features = ["metrics"] }
 hitbox-tower = { path = "../../hitbox/hitbox-tower" }
 hitbox-http = { path = "../../hitbox/hitbox-http", version = "0.1" }
 hitbox-redis = { path = "../../hitbox/hitbox-redis", version = "0.1" }
-hitbox-backend = { path = "../../hitbox/hitbox-backend", version = "0.1" }
 actix-router = "0.5"
 hyper = { version = "0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }

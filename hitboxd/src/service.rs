@@ -5,14 +5,11 @@ use actix_router::ResourceDef;
 use hitbox::policy::PolicyConfig;
 use hitbox::{backend::CacheBackend, fsm::CacheFuture};
 use hitbox_http::{
-    predicates::{query::QueryPredicate, NeutralRequestPredicate, NeutralResponsePredicate},
-    CacheableHttpRequest, CacheableHttpResponse, FromBytes,
+    predicates::NeutralResponsePredicate, CacheableHttpRequest, CacheableHttpResponse, FromBytes,
 };
 use http::{Request, Response};
 use hyper::body::{Body, HttpBody};
 use tower::Service;
-
-use tracing::log::warn;
 
 use hitbox_tower::future::Transformer;
 

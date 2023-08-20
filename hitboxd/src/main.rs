@@ -1,15 +1,15 @@
 use hitbox::{predicate::Predicate, Extractor};
 use hitbox_http::{
     extractors::{method::MethodExtractor, path::PathExtractor, NeutralExtractor},
-    predicates::{header::HeaderPredicate, query::QueryPredicate, NeutralRequestPredicate},
+    predicates::{
+        request::{HeaderPredicate, QueryPredicate},
+        NeutralRequestPredicate,
+    },
     CacheableHttpRequest,
 };
 use hitbox_redis::RedisBackend;
 // use hitbox_stretto::StrettoBackend;
-use hitboxd::{
-    config::{BoxPredicate, Endpoint},
-    Cache,
-};
+use hitboxd::{config::Endpoint, Cache};
 use http::Method;
 use hyper::{Body, Server};
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
