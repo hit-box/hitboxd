@@ -1,5 +1,3 @@
 [workspace]
-
-members = [
-    "hitboxd",
-]
+resolver = "2"
+members = ["hitboxd"]
