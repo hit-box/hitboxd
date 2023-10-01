@@ -1,56 +1,54 @@
-use std::collections::HashMap;
+use hitbox_stretto::StrettoBackend;
+use hitbox_tower::{CacheConfig, EndpointConfig};
+
 use std::{fmt::Debug, sync::Arc};
 
-use actix_router::ResourceDef;
-use hitbox::policy::PolicyConfig;
-use hitbox::{backend::CacheBackend, fsm::CacheFuture};
-use hitbox_http::{
-    predicates::NeutralResponsePredicate, CacheableHttpRequest, CacheableHttpResponse, FromBytes,
-};
+use hitbox::fsm::CacheFuture;
+use hitbox_http::{CacheableHttpRequest, CacheableHttpResponse, FromBytes};
 use http::{Request, Response};
 use hyper::body::{Body, HttpBody};
 use tower::Service;
 
 use hitbox_tower::future::Transformer;
 
-pub struct CacheService<S, B> {
+pub struct CacheService<S> {
     upstream: S,
-    backends: Arc<HashMap<String, Arc<B>>>,
+    //backends: Arc<HashMap<String, Arc<B>>>,
     config: Arc<crate::Config>,
 }
 
-impl<S, B> CacheService<S, B> {
+impl<S> CacheService<S> {
     pub fn new(
         upstream: S,
-        backends: Arc<HashMap<String, Arc<B>>>,
+        //backends: Arc<HashMap<String, Arc<B>>>,
         config: Arc<crate::Config>,
     ) -> Self {
         CacheService {
             upstream,
-            backends,
+            //backends,
             config,
         }
     }
 }
 
-impl<S, B> Clone for CacheService<S, B>
+impl<S> Clone for CacheService<S>
 where
     S: Clone,
-    B: Clone,
+    //B: Clone,
 {
     fn clone(&self) -> Self {
         Self {
             upstream: self.upstream.clone(),
-            backends: Arc::clone(&self.backends),
+            //backends: Arc::clone(&self.backends),
             config: Arc::clone(&self.config),
         }
     }
 }
 
-impl<S, B, ResBody> Service<Request<Body>> for CacheService<S, B>
+impl<S, ResBody> Service<Request<Body>> for CacheService<S>
 where
     S: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
-    B: CacheBackend + Clone + Send + Sync + 'static,
+    //B: CacheBackend + Clone + Send + Sync + 'static,
     S::Future: Send,
 
     // debug bounds
@@ -62,7 +60,7 @@ where
     type Response = Response<ResBody>;
     type Error = S::Error;
     type Future = CacheFuture<
-        B,
+        StrettoBackend,
         CacheableHttpRequest<Body>,
         CacheableHttpResponse<ResBody>,
         Transformer<S, Body>,
@@ -76,28 +74,32 @@ where
     }
 
     fn call(&mut self, req: Request<Body>) -> Self::Future {
-        let endpoint = self
-            .config
-            .endpoints
-            .values()
-            .find(|endpoint| {
-                ResourceDef::new(endpoint.path.as_str()).is_match(req.uri().path())
-                    && endpoint.methods.contains(req.method())
-            })
-            .unwrap();
-        let request_predicate = Arc::clone(&endpoint.request_predicate);
-        let extractors = Arc::clone(&endpoint.extractors);
+        let endpoint = self.config.endpoints.first().unwrap().clone();
+        //let endpoint = self
+        //.config
+        //.endpoints
+        ////.values()
+        //.into_iter()
+        //.find(|endpoint| {
+        //ResourceDef::new(endpoint.path.as_str()).is_match(req.uri().path())
+        //&& endpoint.methods.contains(req.method())
+        //})
+        //.unwrap();
         let transformer = Transformer::new(self.upstream.clone());
-        let backend = self.backends.get("InMemory").unwrap();
+        let configuration = EndpointConfig {
+            request_predicates: endpoint.request_predicates,
+            response_predicates: endpoint.response_predicates,
+            extractors: endpoint.extractors,
+            policy: endpoint.policy,
+        };
         CacheFuture::new(
-            backend.clone(),
+            endpoint.backend,
             CacheableHttpRequest::from_request(req),
             transformer,
-            request_predicate,
-            // Arc::new(NeutralRequestPredicate::new().query("cache".to_owned(), "true".to_owned())),
-            Arc::new(NeutralResponsePredicate::new()),
-            extractors,
-            Arc::new(PolicyConfig::default()),
+            Arc::new(configuration.request_predicates()),
+            Arc::new(configuration.response_predicates()),
+            Arc::new(configuration.extractors()),
+            Arc::new(configuration.policy()),
         )
     }
 }

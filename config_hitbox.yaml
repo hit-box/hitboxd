@@ -1,0 +1,24 @@
+upstreams:
+- name: default-upstream
+  addresses:
+  - host: 127.0.0.1
+    port: 8080
+    scheme: http
+
+backends:
+- type: inmemory
+  name: StrettoBackend
+  capacity: 10000000
+
+endpoints:
+- name: all
+  path: /{path}*
+  method: GET
+  key:
+  - Method
+  - !Path
+    path: /{path}*
+  predicates:
+    request: []
+    response:
+    - !StatusCode 200

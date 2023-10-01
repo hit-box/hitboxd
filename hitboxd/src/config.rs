@@ -1,33 +1,40 @@
-use std::collections::HashMap;
-use std::fmt::Debug;
+use crate::external_configuration;
+use hitbox::policy::PolicyConfig;
+use hitbox_stretto::StrettoBackend;
 use std::sync::Arc;
 
-use hitbox::predicate::Predicate;
-use hitbox::Extractor;
-use hitbox_http::CacheableHttpRequest;
-use http::method::Method;
-use hyper::Body;
-
-pub type BoxPredicate = Box<dyn Predicate<Subject = CacheableHttpRequest<Body>> + Send + Sync>;
-pub type BoxExtractor = Box<dyn Extractor<Subject = CacheableHttpRequest<Body>> + Send + Sync>;
-
 pub struct Config {
-    pub endpoints: HashMap<String, Endpoint<BoxPredicate, BoxExtractor>>,
+    pub endpoints: Vec<crate::Endpoint>,
 }
 
 impl Config {
     pub fn new() -> Self {
         Config {
-            endpoints: HashMap::new(),
+            endpoints: Vec::new(),
         }
     }
-}
 
-#[derive(Debug)]
-pub struct Endpoint<P, E> {
-    pub name: String,
-    pub path: String,
-    pub methods: Vec<Method>,
-    pub request_predicate: Arc<P>,
-    pub extractors: Arc<E>,
+    pub fn from_external(
+        config: external_configuration::Config,
+        backend: Arc<StrettoBackend>,
+    ) -> Self {
+        let endpoints = config
+            .endpoints
+            .into_iter()
+            .map(|source_endpoint| crate::Endpoint {
+                name: source_endpoint.name,
+                routing: crate::endpoint::Routing {
+                    path_pattern: source_endpoint.path,
+                    methods: vec![source_endpoint.method],
+                },
+                backend: backend.clone(),
+                upstreams: Vec::new(),
+                request_predicates: source_endpoint.predicates.request,
+                response_predicates: source_endpoint.predicates.response,
+                extractors: source_endpoint.key,
+                policy: PolicyConfig::default(),
+            })
+            .collect();
+        Config { endpoints }
+    }
 }

@@ -1,20 +1,9 @@
-use hitbox::{predicate::Predicate, Extractor};
-use hitbox_http::{
-    extractors::{method::MethodExtractor, path::PathExtractor, NeutralExtractor},
-    predicates::{
-        request::{HeaderPredicate, QueryPredicate},
-        NeutralRequestPredicate,
-    },
-    CacheableHttpRequest,
-};
-use hitbox_redis::RedisBackend;
-// use hitbox_stretto::StrettoBackend;
-use hitboxd::{config::Endpoint, Cache};
-use http::Method;
-use hyper::{Body, Server};
-use std::{collections::HashMap, net::SocketAddr, sync::Arc};
-
+use hitbox_stretto::StrettoBackend;
+use hitboxd::{Cache, Config};
 use hyper::http::{Request, Response};
+use hyper::{Body, Server};
+use std::fs;
+use std::{net::SocketAddr, sync::Arc};
 use tower::make::Shared;
 
 async fn handle(mut req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
@@ -34,43 +23,21 @@ async fn handle(mut req: Request<Body>) -> Result<Response<Body>, hyper::Error> 
 
 #[tokio::main]
 async fn main() {
+    let file_path = String::from("config_hitbox.yaml");
+    let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
+    let external_config =
+        serde_yaml::from_str::<hitboxd::external_configuration::Config>(&contents).unwrap();
+
     let subscriber = tracing_subscriber::fmt().pretty().finish();
     tracing::subscriber::set_global_default(subscriber).unwrap();
 
-    let mut config = hitboxd::Config::new();
-    let test_endpoint = Endpoint {
-        name: "test".to_owned(),
-        path: "/test/".to_owned(),
-        methods: vec![Method::GET],
-        request_predicate: Arc::new(Box::new(
-            NeutralRequestPredicate::new().query("cache".to_owned(), "true".to_owned()),
-        )
-            as Box<dyn Predicate<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
-        extractors: Arc::new(Box::new(NeutralExtractor::new().method().path("{path}*"))
-            as Box<dyn Extractor<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
-    };
-    let ip_endpoint = Endpoint {
-        name: "ip".to_owned(),
-        path: "/ip".to_owned(),
-        methods: vec![Method::GET],
-        request_predicate: Arc::new(Box::new(
-            NeutralRequestPredicate::new()
-                .query("cache".to_owned(), "true".to_owned())
-                .header("x-cache".to_owned(), "enable".to_owned()),
-        )
-            as Box<dyn Predicate<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
-        extractors: Arc::new(Box::new(NeutralExtractor::new().method().path("{path}*"))
-            as Box<dyn Extractor<Subject = CacheableHttpRequest<Body>> + Send + Sync>),
-    };
-    config.endpoints = HashMap::with_capacity(2);
-    config.endpoints.insert("test".to_owned(), test_endpoint);
-    config.endpoints.insert("ip".to_owned(), ip_endpoint);
-
-    let backend = RedisBackend::builder().build().unwrap();
-    // let inmemory = StrettoBackend::builder(10_000_000).finalize().unwrap();
+    let inmemory_backend = StrettoBackend::builder(10).finalize().unwrap();
+    let config = Config::from_external(external_config, Arc::new(inmemory_backend));
+    let config = Arc::new(config);
+    let cache_layer = Cache { config };
     let service = tower::ServiceBuilder::new()
         .layer(tower_http::trace::TraceLayer::new_for_http())
-        .layer(Cache::new(backend, config))
+        .layer(cache_layer)
         .service_fn(handle);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));

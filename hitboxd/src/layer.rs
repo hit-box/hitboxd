@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use crate::Config;
+
 use std::sync::Arc;
 
 use tower::Layer;
@@ -6,32 +7,22 @@ use tower::Layer;
 use crate::CacheService;
 
 #[derive(Clone)]
-pub struct Cache<B> {
-    pub backends: Arc<HashMap<String, Arc<B>>>,
-    pub config: Arc<crate::Config>,
+pub struct Cache {
+    pub config: Arc<Config>,
 }
 
-impl<B> Cache<B> {
-    pub fn new(backend: B, config: crate::Config) -> Cache<B> {
-        let backends = vec![(String::from("InMemory"), Arc::new(backend))];
-        let backends = HashMap::<_, _, std::collections::hash_map::RandomState>::from_iter(
-            backends.into_iter(),
-        );
+impl Cache {
+    pub fn new(config: crate::Config) -> Cache {
         Cache {
-            backends: Arc::new(backends),
             config: Arc::new(config),
         }
     }
 }
 
-impl<S, B> Layer<S> for Cache<B> {
-    type Service = CacheService<S, B>;
+impl<S> Layer<S> for Cache {
+    type Service = CacheService<S>;
 
     fn layer(&self, upstream: S) -> Self::Service {
-        CacheService::new(
-            upstream,
-            Arc::clone(&self.backends),
-            Arc::clone(&self.config),
-        )
+        CacheService::new(upstream, Arc::clone(&self.config))
     }
 }

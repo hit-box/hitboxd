@@ -7,10 +7,10 @@ edition = "2021"
 
 [dependencies]
 hitbox = { path = "../../hitbox/hitbox", features = ["metrics"] }
-# hitbox-stretto = { path = "../../hitbox/hitbox-stretto" }
 hitbox-tower = { path = "../../hitbox/hitbox-tower" }
 hitbox-http = { path = "../../hitbox/hitbox-http", version = "0.1" }
 hitbox-redis = { path = "../../hitbox/hitbox-redis", version = "0.1" }
+hitbox-stretto = { path = "../../hitbox/hitbox-stretto", version = "0.1" }
 actix-router = "0.5"
 hyper = { version = "0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }
@@ -24,3 +24,4 @@ futures = "0.3"
 pin-project = "1"
 chrono = "0.4"
 bytes = "1"
+serde_yaml = "0.9.25"
