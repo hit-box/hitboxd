@@ -1,4 +1,3 @@
-use hitbox_stretto::StrettoBackend;
 use hitboxd::{Cache, Config};
 use hyper::http::{Request, Response};
 use hyper::{Body, Server};
@@ -7,12 +6,13 @@ use std::{net::SocketAddr, sync::Arc};
 use tower::make::Shared;
 
 async fn handle(mut req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
-    let ext = req.extensions().get::<String>();
-    dbg!(ext);
+    let ext = req.extensions().get::<Vec<hitboxd::Upstream>>().unwrap();
+    let upstream = ext.first().unwrap();
     let client: hyper::Client<hyper::client::HttpConnector, hyper::Body> =
         hyper::client::Client::builder().build_http();
     let mut parts = req.uri().clone().into_parts();
-    parts.authority = Some(hyper::http::uri::Authority::from_static("httpbin.org"));
+    let address = format!("{}:{}", upstream.host, upstream.port);
+    parts.authority = Some(hyper::http::uri::Authority::try_from(address).unwrap());
     parts.scheme = Some(hyper::http::uri::Scheme::HTTP);
     let uri = hyper::http::uri::Uri::from_parts(parts).unwrap();
     *req.uri_mut() = uri;
@@ -31,8 +31,7 @@ async fn main() {
     let subscriber = tracing_subscriber::fmt().pretty().finish();
     tracing::subscriber::set_global_default(subscriber).unwrap();
 
-    let inmemory_backend = StrettoBackend::builder(10).finalize().unwrap();
-    let config = Config::from_external(external_config, Arc::new(inmemory_backend));
+    let config = Config::from_external(external_config);
     let config = Arc::new(config);
     let cache_layer = Cache { config };
     let service = tower::ServiceBuilder::new()

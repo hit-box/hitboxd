@@ -5,6 +5,6 @@ pub mod layer;
 pub mod service;
 
 pub use config::Config;
-pub use endpoint::Endpoint;
+pub use endpoint::{Endpoint, Upstream};
 pub use layer::Cache;
 pub use service::CacheService;

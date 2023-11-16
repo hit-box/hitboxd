@@ -1,21 +1,22 @@
 upstreams:
 - name: default-upstream
   addresses:
-  - host: 127.0.0.1
-    port: 8080
+  - host: httpbin.org
+    port: 80
     scheme: http
 
 backends:
-- type: inmemory
-  name: StrettoBackend
-  capacity: 10000000
+- type: redis
+  name: redis
 
 endpoints:
 - name: all
+  upstream: default-upstream
+  backend: redis
   path: /{path}*
   method: GET
   key:
-  - Method
+  - !Method
   - !Path
     path: /{path}*
   predicates:

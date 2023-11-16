@@ -19,6 +19,8 @@ pub struct Endpoint {
     pub method: Method,
     pub key: Vec<RequestExtractor>,
     pub predicates: Predicates,
+    pub backend: String,
+    pub upstream: String,
 }
 
 impl Default for Predicates {
@@ -46,6 +48,8 @@ impl Default for Endpoint {
             method: Method::GET,
             key: default_extractors,
             predicates: Predicates::default(),
+            backend: String::new(),
+            upstream: String::new(),
         }
     }
 }

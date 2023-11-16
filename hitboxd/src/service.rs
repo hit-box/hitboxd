@@ -1,4 +1,5 @@
-use hitbox_stretto::StrettoBackend;
+use hitbox::backend::CacheBackend;
+use hitbox_http::SerializableHttpResponse;
 use hitbox_tower::{CacheConfig, EndpointConfig};
 
 use std::{fmt::Debug, sync::Arc};
@@ -60,7 +61,7 @@ where
     type Response = Response<ResBody>;
     type Error = S::Error;
     type Future = CacheFuture<
-        StrettoBackend,
+        Arc<dyn CacheBackend<SerializableHttpResponse> + Send + 'static>,
         CacheableHttpRequest<Body>,
         CacheableHttpResponse<ResBody>,
         Transformer<S, Body>,
@@ -92,9 +93,12 @@ where
             extractors: endpoint.extractors,
             policy: endpoint.policy,
         };
+        let (mut parts, body) = req.into_parts();
+        parts.extensions.insert(endpoint.upstreams);
+        let new_req = Request::from_parts(parts, body);
         CacheFuture::new(
-            endpoint.backend,
-            CacheableHttpRequest::from_request(req),
+            Arc::new(Arc::new(endpoint.backend)),
+            CacheableHttpRequest::from_request(new_req),
             transformer,
             Arc::new(configuration.request_predicates()),
             Arc::new(configuration.response_predicates()),
